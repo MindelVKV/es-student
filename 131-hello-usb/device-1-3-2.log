@@ -5,6 +5,13 @@
 порт: /dev/tty.usbmodem1101
 начало: 2026-09-14T18:20:11
    0.000 <-- Hello, world!
-   1.001 <-- Hello, world!
-   2.002 <-- Hello, world!
+   1.101 <-- Hello, world!
+   2.014 <-- Hello, world!
+   3.502 <-- Hello, world!
+   4.012 <-- Hello, world!
+   5.002 <-- Hello, world!
+   6.402 <-- Hello, world! 
+   7.002 <-- Hello, world!
+   8.032 <-- Hello, world!
+   9.102 <-- Hello, world! 
 итог: принято строк 10 за 10.0 с
