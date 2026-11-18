@@ -1,6 +1,6 @@
 ﻿cmake_minimum_required(VERSION 3.15)
 
-set(PICO_SDK_PATH "/home/irunka/mipt/mcu/pico/pico-sdk")
+set(PICO_SDK_PATH "C:/Repositor/pico/pico-sdk")
 
 set(PICO_BOARD pico)
 set(PICO_PLATFORM rp2040)
@@ -74,3 +74,4 @@ pico_enable_stdio_usb(${PROJECT_NAME} 1)
 pico_enable_stdio_uart(${PROJECT_NAME} 0)
 
 pico_add_extra_outputs(${PROJECT_NAME})
+
