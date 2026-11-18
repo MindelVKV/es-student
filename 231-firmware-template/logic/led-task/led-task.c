@@ -1,8 +1,7 @@
-﻿#include "led-task.h"
+﻿#include "led-task/led-task.h"
 #include <stdbool.h>
-#include "pico/stdlib.h"`r`n#include "systime/systime.h"
-
-#define LED_TASK_PIN 25
+#include "systime/systime.h"
+#include "platform/platform.h"
 
 static led_state_t led_state;
 static uint32_t led_period_ms;
@@ -11,15 +10,10 @@ static bool led_level;
 
 void led_task_init(void)
 {
-    gpio_init(LED_TASK_PIN);
-    gpio_set_dir(LED_TASK_PIN, GPIO_OUT);
     led_period_ms = 1000;
-
-    // РРЅРёС†РёР°Р»РёР·РёСЂСѓРµРј С‡РµСЂРµР· set_state, С‡С‚РѕР±С‹ РїСЂРѕРІРµСЂРєР° РІРёРґРµР»Р°, С‡С‚Рѕ РјС‹ РµРµ РёСЃРїРѕР»СЊР·СѓРµРј
     led_task_set_state(LED_STATE_BLINK);
 }
 
-// Р”Р•Р™РЎРўР’РР• РџР Р Р’РҐРћР”Р• РўР•РџР•Р Р¬ РџР РЇРњРћ Р’ Р­РўРћР™ Р¤РЈРќРљР¦РР
 void led_task_set_state(led_state_t state)
 {
     led_state = state;
@@ -28,16 +22,15 @@ void led_task_set_state(led_state_t state)
     {
         case LED_STATE_OFF:
             led_level = false;
-            gpio_put(LED_TASK_PIN, 0); // РЇРІРЅРѕРµ РІС‹РєР»СЋС‡РµРЅРёРµ
+            platform_led_set(false);
             break;
 
         case LED_STATE_ON:
             led_level = true;
-            gpio_put(LED_TASK_PIN, 1); // РЇРІРЅРѕРµ РІРєР»СЋС‡РµРЅРёРµ
+            platform_led_set(true);
             break;
 
         case LED_STATE_BLINK:
-            // РЈСЃС‚Р°РЅР°РІР»РёРІР°РµРј РјРµС‚РєСѓ РІ РїСЂРѕС€Р»РѕРµ РґР»СЏ РјРіРЅРѕРІРµРЅРЅРѕРіРѕ РїРµСЂРІРѕРіРѕ РјРёРіР°РЅРёСЏ
             led_last_toggle_us = systime_us() - (uint64_t)led_period_ms * 1000 / 2;
             break;
     }
@@ -55,7 +48,7 @@ void led_task_handle(void)
             if (systime_period_elapsed(&led_last_toggle_us, (uint64_t)led_period_ms * 1000 / 2))
             {
                 led_level = !led_level;
-                gpio_put(LED_TASK_PIN, led_level ? 1 : 0);
+                platform_led_set(led_level);
             }
             break;
     }
@@ -90,4 +83,3 @@ void led_task_next_state(void)
         case LED_STATE_BLINK: led_task_set_state(LED_STATE_OFF);   break;
     }
 }
-

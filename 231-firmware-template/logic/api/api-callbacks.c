@@ -1,25 +1,16 @@
-﻿#include "api.h"
+﻿#include "api/api-commands.h"
 
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include "pico/stdlib.h"
-#include "firmware.h"`r`n#include "device/device.h"`r`n#include "systime/systime.h"
-#include "led-task.h"
-#include "button-task.h"
-#include "pi-task.h"
+#include "firmware.h"
+#include "device/device.h"
+#include "systime/systime.h"
+#include "led-task/led-task.h"
+#include "button-task/button-task.h"
+#include "pi-task/pi-task.h"
 #include "profiling/profiling.h"
 
-typedef void (*api_callback_t)(const command_t *command);
-
-typedef struct
-{
-    const char *name;
-    const char *help;
-    api_callback_t callback;
-} api_command_t;
-
-// Р Р°Р·Р±РѕСЂ С‡РёСЃР»Р° РёР· СЃС‚СЂРѕРєРё С‡РµСЂРµР· strtoul (Р±РµР· sscanf вЂ” СЌРєРѕРЅРѕРјРёСЏ РѕР±СЂР°Р·Р°).
 static bool parse_u32(const char *text, uint32_t *value)
 {
     if (text == NULL || *text == '\0')
@@ -44,8 +35,6 @@ static bool parse_u32(const char *text, uint32_t *value)
     return true;
 }
 
-// ---------- РѕР±СЂР°Р±РѕС‚С‡РёРєРё РєРѕРјР°РЅРґ ----------
-
 static void cmd_info(const command_t *command)
 {
     (void)command;
@@ -67,10 +56,6 @@ static void cmd_uptime(const command_t *command)
     (void)command;
     printf("uptime: %llu ms\n", (unsigned long long)systime_ms());
 }
-
-
-
-// ---------- РѕР±СЂР°Р±РѕС‚С‡РёРєРё СЃРІРµС‚РѕРґРёРѕРґР° ----------
 
 static void led_print_state(void)
 {
@@ -135,7 +120,7 @@ static void cmd_button(const command_t *command)
 
 static void cmd_pi_start(const command_t *command)
 {
-    uint32_t terms = 1000000; // РїРѕ СѓРјРѕР»С‡Р°РЅРёСЋ РёР· РїСЂРёРјРµСЂР° Р·Р°РґР°РЅРёСЏ
+    uint32_t terms = 1000000;
 
     if (command->argc > 1)
     {
@@ -210,6 +195,7 @@ static void cmd_profiling(const command_t *command)
     printf("profiling is disabled in this build\n");
 #endif
 }
+
 static void cmd_profiling_reset(const command_t *command)
 {
     (void)command;
@@ -217,65 +203,19 @@ static void cmd_profiling_reset(const command_t *command)
     printf("profiling reset\n");
 }
 
-// ---------- С‚Р°Р±Р»РёС†Р° РєРѕРјР°РЅРґ ----------
-
-static const api_command_t api_commands[] =
+const api_command_t api_commands[] =
 {
     { "info",            "device passport",                                   cmd_info },
     { "uptime",          "time since reset",                                  cmd_uptime },
-    { "profiling",  "superloop iteration: average and maximum",          cmd_profiling },
+    { "profiling",       "superloop iteration: average and maximum",          cmd_profiling },
     { "profiling_reset", "reset maximum iteration",                           cmd_profiling_reset },
     { "led_enable",      "turn led on",                                       cmd_led_enable },
     { "led_disable",     "turn led off",                                      cmd_led_disable },
     { "led_blink",       "blink led",                                         cmd_led_blink },
     { "led_period",      "set blink period: led_period <ms>",                 cmd_led_period },
-    {"button", "button state and press count", cmd_button},
-    { "pi_start", "start calculating pi: pi_start [terms]", cmd_pi_start },
-    { "pi",       "get pi result or state",                 cmd_pi },
+    { "button",          "button state and press count",                      cmd_button },
+    { "pi_start",        "start calculating pi: pi_start [terms]",            cmd_pi_start },
+    { "pi",              "get pi result or state",                            cmd_pi },
 };
 
-#define API_COMMAND_COUNT (sizeof(api_commands) / sizeof(api_commands[0]))
-
-// ---------- help ----------
-
-static void api_print_help(void)
-{
-    printf("help             list of commands\n");
-    for (uint32_t i = 0; i < API_COMMAND_COUNT; i++)
-    {
-        printf("%-16s %s\n", api_commands[i].name, api_commands[i].help);
-    }
-}
-
-// ---------- api_handle ----------
-
-void api_handle(const command_t *command)
-{
-    // 1. РѕР±СЂРµР·Р°РЅРЅР°СЏ РєРѕРјР°РЅРґР° РЅРµ РІС‹РїРѕР»РЅСЏРµС‚СЃСЏ
-    if (command->truncated)
-    {
-        printf("error: command longer than 63 characters or 4 arguments\n");
-        return;
-    }
-
-    // 2. help РІС‹РїРѕР»РЅСЏРµС‚ СЃР°Рј api
-    if (strcmp(command->name, "help") == 0)
-    {
-        api_print_help();
-        return;
-    }
-
-    // 3. РїРѕРёСЃРє РІ С‚Р°Р±Р»РёС†Рµ
-    for (uint32_t i = 0; i < API_COMMAND_COUNT; i++)
-    {
-        if (strcmp(command->name, api_commands[i].name) == 0)
-        {
-            api_commands[i].callback(command);
-            return;
-        }
-    }
-
-    // 4. РЅРµРёР·РІРµСЃС‚РЅР°СЏ РєРѕРјР°РЅРґР°
-    printf("error: unknown command '%s', try help\n", command->name);
-}
-
+const uint32_t api_command_count = sizeof(api_commands) / sizeof(api_commands[0]);
