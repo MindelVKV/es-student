@@ -1,5 +1,4 @@
-#ifndef LOG_H
-#define LOG_H
+﻿#pragma once
 
 #include <stdio.h>
 
@@ -11,7 +10,7 @@
 #define LOG_LEVEL LOG_LEVEL_DBG
 #endif
 
-// Функция — реализация в log.c
+// функция — реализация в log.c
 void log_prefix(const char *level, const char *function, int line);
 
 #define LOG_ERR(...)                                \
@@ -43,5 +42,3 @@ do                                                  \
         printf(__VA_ARGS__);                        \
     }                                               \
 } while (0)
-
-#endif // LOG_H
