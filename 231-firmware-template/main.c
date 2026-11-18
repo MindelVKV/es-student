@@ -1,16 +1,16 @@
-#include <stdio.h>
+﻿#include <stdio.h>
 #include "pico/stdlib.h"
 
-#include "stdio-text-protocol.h"
+#include "stdio-text-protocol/stdio-text-protocol.h"
 #include "api.h"
 #include "led-task.h"
 #include "button-task.h"
 #include "pi-task.h"
-#include "profiling.h"
+#include "profiling/profiling.h"
 #include "logging/log.h"
-#include "device.h" // для DEVICE_NAME и FIRMWARE_VERSION
+#include "firmware.h"
 
-// Перечисляемый тип номеров секундомеров
+// РџРµСЂРµС‡РёСЃР»СЏРµРјС‹Р№ С‚РёРї РЅРѕРјРµСЂРѕРІ СЃРµРєСѓРЅРґРѕРјРµСЂРѕРІ
 typedef enum {
 	STOPWATCH_LOOP,
 	STOPWATCH_COMMAND,
@@ -29,7 +29,7 @@ int main(void)
 	button_task_init();
 	pi_task_init();
 
-	// Инициализация профилировщика
+	// РРЅРёС†РёР°Р»РёР·Р°С†РёСЏ РїСЂРѕС„РёР»РёСЂРѕРІС‰РёРєР°
 	profiling_init();
 	profiling_stopwatch_init(STOPWATCH_LOOP,    "loop");
 	profiling_stopwatch_init(STOPWATCH_COMMAND, "command");
@@ -37,8 +37,8 @@ int main(void)
 	profiling_stopwatch_init(STOPWATCH_BUTTON,  "button");
 	profiling_stopwatch_init(STOPWATCH_PI,      "pi");
 
-	// Логирование имени прошивки (как требует задание)
-	LOG_INF("%s %s\n", DEVICE_NAME, FIRMWARE_VERSION);
+	// Р›РѕРіРёСЂРѕРІР°РЅРёРµ РёРјРµРЅРё РїСЂРѕС€РёРІРєРё (РєР°Рє С‚СЂРµР±СѓРµС‚ Р·Р°РґР°РЅРёРµ)
+	LOG_INF("%s %s\n", FIRMWARE_PROJECT, FIRMWARE_VERSION);
 
 	while (true)
 	{
@@ -66,3 +66,4 @@ int main(void)
 		profiling_stop(STOPWATCH_LOOP);
 	}
 }
+

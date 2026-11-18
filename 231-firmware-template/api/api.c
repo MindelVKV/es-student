@@ -1,14 +1,14 @@
-#include "api.h"
+﻿#include "api.h"
 
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include "pico/stdlib.h"
-#include "device.h"
+#include "firmware.h"`r`n#include "device/device.h"`r`n#include "systime/systime.h"
 #include "led-task.h"
 #include "button-task.h"
 #include "pi-task.h"
-#include "profiling.h"
+#include "profiling/profiling.h"
 
 typedef void (*api_callback_t)(const command_t *command);
 
@@ -19,7 +19,7 @@ typedef struct
     api_callback_t callback;
 } api_command_t;
 
-// Разбор числа из строки через strtoul (без sscanf — экономия образа).
+// Р Р°Р·Р±РѕСЂ С‡РёСЃР»Р° РёР· СЃС‚СЂРѕРєРё С‡РµСЂРµР· strtoul (Р±РµР· sscanf вЂ” СЌРєРѕРЅРѕРјРёСЏ РѕР±СЂР°Р·Р°).
 static bool parse_u32(const char *text, uint32_t *value)
 {
     if (text == NULL || *text == '\0')
@@ -44,7 +44,7 @@ static bool parse_u32(const char *text, uint32_t *value)
     return true;
 }
 
-// ---------- обработчики команд ----------
+// ---------- РѕР±СЂР°Р±РѕС‚С‡РёРєРё РєРѕРјР°РЅРґ ----------
 
 static void cmd_info(const command_t *command)
 {
@@ -52,7 +52,7 @@ static void cmd_info(const command_t *command)
     device_info_t info;
     device_get_info(&info);
 
-    printf("name: %s\n", DEVICE_NAME);
+    printf("name: %s\n", FIRMWARE_PROJECT);
     printf("version: %s\n", FIRMWARE_VERSION);
     printf("board: %s\n", info.board);
     printf("serial: %s\n", info.serial);
@@ -65,12 +65,12 @@ static void cmd_info(const command_t *command)
 static void cmd_uptime(const command_t *command)
 {
     (void)command;
-    printf("uptime: %llu ms\n", (unsigned long long)(time_us_64() / 1000));
+    printf("uptime: %llu ms\n", (unsigned long long)systime_ms());
 }
 
 
 
-// ---------- обработчики светодиода ----------
+// ---------- РѕР±СЂР°Р±РѕС‚С‡РёРєРё СЃРІРµС‚РѕРґРёРѕРґР° ----------
 
 static void led_print_state(void)
 {
@@ -135,7 +135,7 @@ static void cmd_button(const command_t *command)
 
 static void cmd_pi_start(const command_t *command)
 {
-    uint32_t terms = 1000000; // по умолчанию из примера задания
+    uint32_t terms = 1000000; // РїРѕ СѓРјРѕР»С‡Р°РЅРёСЋ РёР· РїСЂРёРјРµСЂР° Р·Р°РґР°РЅРёСЏ
 
     if (command->argc > 1)
     {
@@ -195,6 +195,7 @@ static void cmd_pi(const command_t *command)
 static void cmd_profiling(const command_t *command)
 {
     (void)command;
+#if PROFILING_ENABLED
     profiling_result_t res;
     for (uint32_t i = 0; i < PROFILING_MAX_STOPWATCHES; i++)
     {
@@ -205,8 +206,10 @@ static void cmd_profiling(const command_t *command)
                    res.name, (unsigned)res.count, (unsigned)mean, (unsigned)res.max_us);
         }
     }
+#else
+    printf("profiling is disabled in this build\n");
+#endif
 }
-
 static void cmd_profiling_reset(const command_t *command)
 {
     (void)command;
@@ -214,7 +217,7 @@ static void cmd_profiling_reset(const command_t *command)
     printf("profiling reset\n");
 }
 
-// ---------- таблица команд ----------
+// ---------- С‚Р°Р±Р»РёС†Р° РєРѕРјР°РЅРґ ----------
 
 static const api_command_t api_commands[] =
 {
@@ -248,21 +251,21 @@ static void api_print_help(void)
 
 void api_handle(const command_t *command)
 {
-    // 1. обрезанная команда не выполняется
+    // 1. РѕР±СЂРµР·Р°РЅРЅР°СЏ РєРѕРјР°РЅРґР° РЅРµ РІС‹РїРѕР»РЅСЏРµС‚СЃСЏ
     if (command->truncated)
     {
         printf("error: command longer than 63 characters or 4 arguments\n");
         return;
     }
 
-    // 2. help выполняет сам api
+    // 2. help РІС‹РїРѕР»РЅСЏРµС‚ СЃР°Рј api
     if (strcmp(command->name, "help") == 0)
     {
         api_print_help();
         return;
     }
 
-    // 3. поиск в таблице
+    // 3. РїРѕРёСЃРє РІ С‚Р°Р±Р»РёС†Рµ
     for (uint32_t i = 0; i < API_COMMAND_COUNT; i++)
     {
         if (strcmp(command->name, api_commands[i].name) == 0)
@@ -272,6 +275,7 @@ void api_handle(const command_t *command)
         }
     }
 
-    // 4. неизвестная команда
+    // 4. РЅРµРёР·РІРµСЃС‚РЅР°СЏ РєРѕРјР°РЅРґР°
     printf("error: unknown command '%s', try help\n", command->name);
 }
+

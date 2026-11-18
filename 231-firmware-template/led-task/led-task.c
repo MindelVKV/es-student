@@ -1,6 +1,6 @@
-#include "led-task.h"
+﻿#include "led-task.h"
 #include <stdbool.h>
-#include "pico/stdlib.h"
+#include "pico/stdlib.h"`r`n#include "systime/systime.h"
 
 #define LED_TASK_PIN 25
 
@@ -9,32 +9,17 @@ static uint32_t led_period_ms;
 static uint64_t led_last_toggle_us;
 static bool led_level;
 
-static bool period_elapsed(uint64_t *last_us, uint64_t period_us)
-{
-    uint64_t now = time_us_64();
-    if (now - *last_us < period_us)
-    {
-        return false;
-    }
-    *last_us += period_us;
-    if (now - *last_us >= period_us)
-    {
-        *last_us = now;
-    }
-    return true;
-}
-
 void led_task_init(void)
 {
     gpio_init(LED_TASK_PIN);
     gpio_set_dir(LED_TASK_PIN, GPIO_OUT);
     led_period_ms = 1000;
 
-    // Инициализируем через set_state, чтобы проверка видела, что мы ее используем
+    // РРЅРёС†РёР°Р»РёР·РёСЂСѓРµРј С‡РµСЂРµР· set_state, С‡С‚РѕР±С‹ РїСЂРѕРІРµСЂРєР° РІРёРґРµР»Р°, С‡С‚Рѕ РјС‹ РµРµ РёСЃРїРѕР»СЊР·СѓРµРј
     led_task_set_state(LED_STATE_BLINK);
 }
 
-// ДЕЙСТВИЕ ПРИ ВХОДЕ ТЕПЕРЬ ПРЯМО В ЭТОЙ ФУНКЦИИ
+// Р”Р•Р™РЎРўР’РР• РџР Р Р’РҐРћР”Р• РўР•РџР•Р Р¬ РџР РЇРњРћ Р’ Р­РўРћР™ Р¤РЈРќРљР¦РР
 void led_task_set_state(led_state_t state)
 {
     led_state = state;
@@ -43,17 +28,17 @@ void led_task_set_state(led_state_t state)
     {
         case LED_STATE_OFF:
             led_level = false;
-            gpio_put(LED_TASK_PIN, 0); // Явное выключение
+            gpio_put(LED_TASK_PIN, 0); // РЇРІРЅРѕРµ РІС‹РєР»СЋС‡РµРЅРёРµ
             break;
 
         case LED_STATE_ON:
             led_level = true;
-            gpio_put(LED_TASK_PIN, 1); // Явное включение
+            gpio_put(LED_TASK_PIN, 1); // РЇРІРЅРѕРµ РІРєР»СЋС‡РµРЅРёРµ
             break;
 
         case LED_STATE_BLINK:
-            // Устанавливаем метку в прошлое для мгновенного первого мигания
-            led_last_toggle_us = time_us_64() - (uint64_t)led_period_ms * 1000 / 2;
+            // РЈСЃС‚Р°РЅР°РІР»РёРІР°РµРј РјРµС‚РєСѓ РІ РїСЂРѕС€Р»РѕРµ РґР»СЏ РјРіРЅРѕРІРµРЅРЅРѕРіРѕ РїРµСЂРІРѕРіРѕ РјРёРіР°РЅРёСЏ
+            led_last_toggle_us = systime_us() - (uint64_t)led_period_ms * 1000 / 2;
             break;
     }
 }
@@ -67,7 +52,7 @@ void led_task_handle(void)
             break;
 
         case LED_STATE_BLINK:
-            if (period_elapsed(&led_last_toggle_us, (uint64_t)led_period_ms * 1000 / 2))
+            if (systime_period_elapsed(&led_last_toggle_us, (uint64_t)led_period_ms * 1000 / 2))
             {
                 led_level = !led_level;
                 gpio_put(LED_TASK_PIN, led_level ? 1 : 0);
@@ -105,3 +90,4 @@ void led_task_next_state(void)
         case LED_STATE_BLINK: led_task_set_state(LED_STATE_OFF);   break;
     }
 }
+
