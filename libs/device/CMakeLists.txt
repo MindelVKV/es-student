@@ -1,4 +1,4 @@
-﻿add_library(device STATIC
+add_library(device STATIC
     src/device.c
 )
 

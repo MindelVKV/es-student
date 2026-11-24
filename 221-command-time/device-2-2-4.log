@@ -1,22 +1,29 @@
 задание: 2.2.4
 проект: 221-command-time
 устройство: 2e8a:000a
-серийный номер: E6614104033A8B2F
+серийный номер: 5303284718A63B9C
 порт: /dev/ttyACM0
-начало: 2024-10-14T22:56:18
-   0.211 --> main_time_reset
-   0.218 <-- max reset
-   2.223 --> main_time_exec
-   2.230 <-- iteration avg 2.41 us, max 608 us
-   3.238 --> calc_pi
-   3.250 <-- pi: 3.14159165
-   7.868 <-- time: 4618 ms
-  13.876 --> main_time_exec
-  13.884 <-- iteration avg 5.60 us, max 4618012 us
-  18.891 --> main_time_exec
-  18.898 <-- iteration avg 2.63 us, max 4618012 us
-  19.905 --> main_time_reset
-  19.912 <-- max reset
-  20.919 --> main_time_exec
-  20.926 <-- iteration avg 2.42 us, max 431 us
-итог: отправлено команд 7, принято строк 8
+начало: 2026-10-08T15:56:06
+   0.000 --> main_time_reset
+   0.001 <-- main_time_reset
+   0.002 <-- max reset
+   2.006 --> main_time_exec
+   2.006 <-- main_time_exec
+   2.007 <-- iteration avg 2.48 us, max 227 us
+   3.010 --> calc_pi
+   3.010 <-- calc_pi
+   7.709 <-- pi: 3.14159165
+   7.709 <-- time: 4698 ms
+   9.112 --> main_time_exec
+   9.112 <-- main_time_exec
+   9.113 <-- iteration avg 5.71 us, max 4699033 us
+  14.123 --> main_time_exec
+  14.123 <-- main_time_exec
+  14.124 <-- iteration avg 2.64 us, max 4699033 us
+  15.126 --> main_time_reset
+  15.126 <-- main_time_reset
+  15.126 <-- max reset
+  16.129 --> main_time_exec
+  16.129 <-- main_time_exec
+  16.130 <-- iteration avg 2.59 us, max 141 us
+итог: отправлено команд 7, принято строк 15

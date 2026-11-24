@@ -1,4 +1,4 @@
-﻿add_library(profiling STATIC
+add_library(profiling STATIC
     src/profiling.c
 )
 
@@ -8,4 +8,5 @@ target_include_directories(profiling PUBLIC
 
 target_link_libraries(profiling PRIVATE
     pico_stdlib
+    systime
 )

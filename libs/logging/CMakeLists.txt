@@ -1,4 +1,4 @@
-﻿add_library(logging STATIC
+add_library(logging STATIC
     src/log.c
 )
 

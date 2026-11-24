@@ -1,25 +1,29 @@
-﻿#pragma once
+#pragma once
 
-#include <stdint.h>
 #include <stdbool.h>
+#include <stdint.h>
 
-#define PROFILING_MAX_STOPWATCHES 8
+#ifndef PROFILING_STOPWATCH_COUNT
+#define PROFILING_STOPWATCH_COUNT 5
+#endif
 
 #ifndef PROFILING_ENABLED
 #define PROFILING_ENABLED 1
 #endif
 
+// Сумма хранится в uint32_t и переполняется после примерно 71 минуты
+// накопленного времени секундомера. Сбрасывайте результаты до этого;
+// число замеров также ограничено UINT32_MAX.
 typedef struct
 {
     const char *name;
     uint32_t count;
-    uint32_t sum_us;
+    double mean_us;
     uint32_t max_us;
 } profiling_result_t;
 
-void profiling_init(void);
+// Имя должно оставаться действительным всё время работы секундомера.
 void profiling_stopwatch_init(uint32_t id, const char *name);
-
 #if PROFILING_ENABLED
 void profiling_start(uint32_t id);
 void profiling_stop(uint32_t id);
@@ -28,5 +32,7 @@ void profiling_stop(uint32_t id);
 #define profiling_stop(id) ((void)0)
 #endif
 
+// false — секундомер с таким номером не заведён.
 bool profiling_get(uint32_t id, profiling_result_t *result);
+// Сохраняет имена, обнуляет статистику и отменяет незавершённые замеры.
 void profiling_reset(void);

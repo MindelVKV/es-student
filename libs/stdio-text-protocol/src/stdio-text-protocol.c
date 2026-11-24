@@ -1,152 +1,104 @@
-﻿#include "stdio-text-protocol/stdio-text-protocol.h"
-
-#include <stdio.h>
-#include <string.h>
+#include "stdio-text-protocol/stdio-text-protocol.h"
 #include "pico/stdlib.h"
+#include <stdio.h>
 
-// Р’СЃС‘ СЃРѕСЃС‚РѕСЏРЅРёРµ РїСЂРѕС‚РѕРєРѕР»Р° Р·Р°РєСЂС‹С‚Рѕ РІ СЌС‚РѕРј С„Р°Р№Р»Рµ (static).
 static char line[STDIO_TEXT_PROTOCOL_LINE_SIZE];
-static uint32_t line_len;
-static bool line_overflow;
-
+static uint32_t line_length;
+static bool overflow;
 static command_t command;
 
 void stdio_text_protocol_init(void)
 {
-    line_len = 0;
-    line_overflow = false;
+    line_length = 0;
+    overflow = false;
     line[0] = '\0';
+    command = (command_t){0};
 }
 
-// Р”РµР»РёС‚ СЃС‚СЂРѕРєСѓ РЅР° СЃР»РѕРІР° РЅР° РјРµСЃС‚Рµ: РїСЂРѕР±РµР»С‹ Р·Р°РјРµРЅСЏСЋС‚СЃСЏ '\0',
-// РІ name Рё argv РїРёС€СѓС‚СЃСЏ СѓРєР°Р·Р°С‚РµР»Рё РЅР° РЅР°С‡Р°Р»Р° СЃР»РѕРІ.
-static void split_line(void)
+static const command_t *parse_line(void)
 {
-    command.name = NULL;
-    command.argc = 0;
-    command.truncated = line_overflow;
-
-    uint32_t i = 0;
-
-    // РїСЂРѕРїСѓСЃРєР°РµРј РІРµРґСѓС‰РёРµ РїСЂРѕР±РµР»С‹
-    while (i < line_len && line[i] == ' ')
+    command = (command_t){.truncated = overflow};
+    char *cursor = line;
+    while (*cursor != '\0')
     {
-        i++;
-    }
-
-    if (i >= line_len)
-    {
-        // РїСѓСЃС‚Р°СЏ СЃС‚СЂРѕРєР°
-        command.name = NULL;
-        return;
-    }
-
-    command.name = &line[i];
-
-    while (i < line_len)
-    {
-        // СЃР»РѕРІРѕ
-        while (i < line_len && line[i] != ' ')
+        if (*cursor == ' ')
         {
-            i++;
+            *cursor++ = '\0';
+            continue;
         }
 
-        // РєРѕРЅРµС† СЃР»РѕРІР°: РµСЃР»Рё СЌС‚Рѕ РЅРµ РєРѕРЅРµС† СЃС‚СЂРѕРєРё вЂ” СЃС‚Р°РІРёРј '\0'
-        if (i < line_len)
+        char *word = cursor;
+        while (*cursor != '\0' && *cursor != ' ')
         {
-            line[i] = '\0';
-            i++;
+            cursor++;
+        }
+        if (*cursor == ' ')
+        {
+            *cursor++ = '\0';
         }
 
-        // РїСЂРѕРїСѓСЃРєР°РµРј РїСЂРѕР±РµР»С‹ РјРµР¶РґСѓ СЃР»РѕРІР°РјРё
-        while (i < line_len && line[i] == ' ')
+        if (command.name == NULL)
         {
-            i++;
+            command.name = word;
         }
-
-        if (i >= line_len)
+        else if (command.argc < STDIO_TEXT_PROTOCOL_MAX_ARGS)
         {
-            break;
-        }
-
-        // СЃР»РµРґСѓСЋС‰РµРµ СЃР»РѕРІРѕ вЂ” Р°СЂРіСѓРјРµРЅС‚
-        if (command.argc < STDIO_TEXT_PROTOCOL_MAX_ARGS)
-        {
-            command.argv[command.argc] = &line[i];
-            command.argc++;
+            command.argv[command.argc++] = word;
         }
         else
         {
-            // Р°СЂРіСѓРјРµРЅС‚РѕРІ Р±РѕР»СЊС€Рµ, С‡РµРј РїРѕРјРµС‰Р°РµС‚СЃСЏ
             command.truncated = true;
-            break;
         }
     }
+
+    // Даже если сохранены только пробелы, переполненный кадр надо отклонить.
+    return command.name != NULL || command.truncated ? &command : NULL;
 }
 
 const command_t *stdio_text_protocol_handle(void)
 {
-    // С‡РёС‚Р°РµРј СЃРёРјРІРѕР» Р±РµР· РѕР¶РёРґР°РЅРёСЏ; РЅРµС‚ СЃРёРјРІРѕР»Р° вЂ” РІРѕР·РІСЂР°С‰Р°РµРј NULL
-    int c = getchar_timeout_us(0);
-    if (c == PICO_ERROR_TIMEOUT)
+    int symbol = getchar_timeout_us(0);
+    if (symbol == PICO_ERROR_TIMEOUT)
     {
         return NULL;
     }
 
-    // РєРѕРЅРµС† СЃС‚СЂРѕРєРё
-    if (c == '\r' || c == '\n')
+    if (symbol == '\r' || symbol == '\n')
     {
-        // РїСѓСЃС‚СѓСЋ СЃС‚СЂРѕРєСѓ РїСЂРѕРїСѓСЃРєР°РµРј
-        if (line_len == 0 && !line_overflow)
+        if (line_length == 0)
         {
             return NULL;
         }
-
-        // РїРµСЂРµРІРѕРґРёРј СЃС‚СЂРѕРєСѓ РІ С‚РµСЂРјРёРЅР°Р»Рµ
-        putchar('\n');
-
-        // Р·Р°РІРµСЂС€Р°РµРј Р±СѓС„РµСЂ
-        line[line_len < STDIO_TEXT_PROTOCOL_LINE_SIZE ? line_len : STDIO_TEXT_PROTOCOL_LINE_SIZE - 1] = '\0';
-
-        // РґРµР»РёРј СЃС‚СЂРѕРєСѓ РЅР° СЃР»РѕРІР°
-        split_line();
-
-        // РіРѕС‚РѕРІРёРј Р±СѓС„РµСЂ Рє СЃР»РµРґСѓСЋС‰РµР№ СЃС‚СЂРѕРєРµ
-        line_len = 0;
-        line_overflow = false;
-
-        return command.name != NULL ? &command : NULL;
+        putchar('\n'); // Pico SDK преобразует LF в CR LF.
+        line[line_length] = '\0';
+        const command_t *result = parse_line();
+        line_length = 0;
+        overflow = false;
+        return result;
     }
 
-    // Backspace: 0x08 (Ctrl+H) РёР»Рё 0x7f (DEL)
-    if (c == 0x08 || c == 0x7f)
+    if (symbol == 0x08 || symbol == 0x7f)
     {
-        if (line_len > 0)
+        if (line_length > 0)
         {
-            line_len--;
-            // СЃС‚РёСЂР°РµРј СЃРёРјРІРѕР» РЅР° СЌРєСЂР°РЅРµ: С€Р°Рі РЅР°Р·Р°Рґ, РїСЂРѕР±РµР», С€Р°Рі РЅР°Р·Р°Рґ
+            line_length--;
+            overflow = false;
             printf("\b \b");
         }
         return NULL;
     }
 
-    // РїРµС‡Р°С‚РЅС‹Р№ СЃРёРјРІРѕР»: РєР»Р°РґС‘Рј РІ Р±СѓС„РµСЂ Рё РїРѕРІС‚РѕСЂСЏРµРј РІ С‚РµСЂРјРёРЅР°Р»
-    if (c >= 0x20 && c < 0x7f)
+    if (symbol >= 0x20 && symbol <= 0x7e)
     {
-        if (line_len < STDIO_TEXT_PROTOCOL_LINE_SIZE - 1)
+        if (line_length < STDIO_TEXT_PROTOCOL_LINE_SIZE - 1)
         {
-            line[line_len] = (char)c;
-            line_len++;
-            putchar(c);
+            line[line_length++] = (char)symbol;
+            putchar(symbol);
         }
         else
         {
-            // Р±СѓС„РµСЂ РїРѕР»РѕРЅ вЂ” РїРѕРјРµС‡Р°РµРј СЃС‚СЂРѕРєСѓ РєР°Рє РїРµСЂРµРїРѕР»РЅРµРЅРЅСѓСЋ
-            line_overflow = true;
-            putchar(c);
+            overflow = true;
         }
     }
-
     return NULL;
 }
-

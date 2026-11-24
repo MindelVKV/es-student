@@ -1,12 +1,21 @@
-#include "device.h"
-#include <stdio.h>
 #include <stddef.h>
+#include <stdio.h>
+#include <stdint.h>
+
+#include "device.h"
+
+struct info_t device_card = {
+    .version = 0x00010000,
+    .name = "es-cmd-usb",
+    .revision = 2,
+};
 
 #include <stdio.h>
+#include <stdint.h>
+
 #include "pico/unique_id.h"
 #include "hardware/regs/addressmap.h"
 #include "hardware/regs/sysinfo.h"
-
 #include "pico/version.h"
 
 void device_info(void)
@@ -18,9 +27,7 @@ void device_info(void)
     uint32_t id = *chip_id;
 
     uint32_t manufacturer = (id & SYSINFO_CHIP_ID_MANUFACTURER_BITS) >> SYSINFO_CHIP_ID_MANUFACTURER_LSB;
-
     uint32_t part = (id & SYSINFO_CHIP_ID_PART_BITS) >> SYSINFO_CHIP_ID_PART_LSB;
-
     uint32_t revision = (id & SYSINFO_CHIP_ID_REVISION_BITS) >> SYSINFO_CHIP_ID_REVISION_LSB;
 
     printf("project: %s\n", DEVICE_PROJECT);
@@ -31,46 +38,31 @@ void device_info(void)
     printf("pico-sdk: %s\n", PICO_SDK_VERSION_STRING);
 }
 
-struct info_t device_card = {
-    .version = 0x00010000,
-    .name = "es-cmd-usb",
-    .revision = 2,
-};
-
 void dev_info(void)
 {
-    printf("struct          address     size offset value\n");
-    printf("device_card     0x%08x %6u\n",
-           (unsigned)(uintptr_t)&device_card,
-           (unsigned)sizeof(device_card));
+    unsigned fields_size = (unsigned)(sizeof(device_card.version) +
+                                      sizeof(device_card.name) +
+                                      sizeof(device_card.revision));
+    unsigned struct_size = (unsigned)sizeof(device_card);
 
-    printf("- %-13s 0x%08x %5u %6u 0x%08x\n",
-           "version",
+    printf("struct          address     size offset value\n");
+    printf("device_card     0x%08x %5u\n",
+           (unsigned)(uintptr_t)&device_card, struct_size);
+    printf("- version       0x%08x %5u %6u 0x%08x\n",
            (unsigned)(uintptr_t)&device_card.version,
            (unsigned)sizeof(device_card.version),
            (unsigned)offsetof(struct info_t, version),
            (unsigned)device_card.version);
-
-    printf("- %-13s 0x%08x %5u %6u %s\n",
-           "name",
-           (unsigned)(uintptr_t)device_card.name,   // у массива имя — уже адрес, & не нужен
+    printf("- name          0x%08x %5u %6u %s\n",
+           (unsigned)(uintptr_t)device_card.name,
            (unsigned)sizeof(device_card.name),
            (unsigned)offsetof(struct info_t, name),
            device_card.name);
-
-    printf("- %-13s 0x%08x %5u %6u %u\n",
-           "revision",
+    printf("- revision      0x%08x %5u %6u %u\n",
            (unsigned)(uintptr_t)&device_card.revision,
            (unsigned)sizeof(device_card.revision),
            (unsigned)offsetof(struct info_t, revision),
            (unsigned)device_card.revision);
-
-    unsigned fields = sizeof(device_card.version)
-    + sizeof(device_card.name)
-    + sizeof(device_card.revision);
-
     printf("fields %u, sizeof %u, padding %u\n",
-           fields,
-           (unsigned)sizeof(device_card),
-           (unsigned)(sizeof(device_card) - fields));
+           fields_size, struct_size, struct_size - fields_size);
 }

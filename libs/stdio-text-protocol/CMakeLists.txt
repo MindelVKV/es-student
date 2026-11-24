@@ -1,4 +1,4 @@
-﻿add_library(stdio_text_protocol STATIC
+add_library(stdio_text_protocol STATIC
     src/stdio-text-protocol.c
 )
 

@@ -1,7 +1,7 @@
 #pragma once
 
-#include <stdint.h>
 #include <stdbool.h>
+#include <stdint.h>
 
 typedef enum {
     LED_STATE_OFF,
@@ -12,10 +12,9 @@ typedef enum {
 void led_task_init(void);
 void led_task_handle(void);
 void led_task_set_state(led_state_t state);
+void led_task_next_state(void);
 led_state_t led_task_get_state(void);
 
+// false — нулевой период не принят, прежний период сохранён.
 bool led_task_set_period_ms(uint32_t period_ms);
 uint32_t led_task_get_period_ms(void);
-
-// Новая функция для п2.3.3
-void led_task_next_state(void);

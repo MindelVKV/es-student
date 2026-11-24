@@ -1,16 +1,18 @@
-﻿#include "device/device.h"
-#include <string.h>
-#include "pico/stdlib.h"
+#include "device/device.h"
 #include "pico/unique_id.h"
+#include "hardware/regs/addressmap.h"
+#include "hardware/regs/sysinfo.h"
+#include "pico/version.h"
 
 void device_get_info(device_info_t *info)
 {
-    if (info == NULL) return;
-
-    strcpy(info->board, "pico");
+    info->board = DEVICE_BOARD;
     pico_get_unique_board_id_string(info->serial, sizeof(info->serial));
-    strcpy(info->manufacturer, "Raspberry Pi");
-    strcpy(info->product, "RP2040");
-    strcpy(info->chip_revision, "B2");
-    strcpy(info->sdk_version, "2.1.0");
+
+    volatile uint32_t *chip_id = (volatile uint32_t *)(SYSINFO_BASE + SYSINFO_CHIP_ID_OFFSET);
+    uint32_t id = *chip_id;
+    info->manufacturer = (id & SYSINFO_CHIP_ID_MANUFACTURER_BITS) >> SYSINFO_CHIP_ID_MANUFACTURER_LSB;
+    info->part = (id & SYSINFO_CHIP_ID_PART_BITS) >> SYSINFO_CHIP_ID_PART_LSB;
+    info->revision = (id & SYSINFO_CHIP_ID_REVISION_BITS) >> SYSINFO_CHIP_ID_REVISION_LSB;
+    info->sdk_version = PICO_SDK_VERSION_STRING;
 }

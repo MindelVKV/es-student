@@ -1,4 +1,4 @@
-﻿#include "systime/systime.h"
+#include "systime/systime.h"
 #include "pico/stdlib.h"
 
 uint64_t systime_us(void)
@@ -8,20 +8,24 @@ uint64_t systime_us(void)
 
 uint64_t systime_ms(void)
 {
-    return time_us_64() / 1000;
+    return systime_us() / 1000;
 }
 
 bool systime_period_elapsed(uint64_t *last_us, uint64_t period_us)
 {
-    uint64_t now = systime_us();
-    if (now - *last_us < period_us)
+    uint64_t now_us = systime_us();
+    if (now_us - *last_us < period_us)
     {
         return false;
     }
+
+    // Сохраняем сетку периода при небольшом опоздании.
     *last_us += period_us;
-    if (now - *last_us >= period_us)
+    if (now_us - *last_us >= period_us)
     {
-        *last_us = now;
+        // Пропущенные переключения не догоняем.
+        *last_us = now_us;
     }
     return true;
 }
+

@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 #include "stdio-text-protocol/stdio-text-protocol.h"
 

@@ -1,4 +1,4 @@
-﻿add_library(systime STATIC
+add_library(systime STATIC
     src/systime.c
 )
 

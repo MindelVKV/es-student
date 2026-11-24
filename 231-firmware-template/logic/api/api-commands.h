@@ -1,7 +1,7 @@
-﻿#pragma once
+#pragma once
 
-#include <stdint.h>
-#include "stdio-text-protocol/stdio-text-protocol.h"
+// Внутренний заголовок: только для api.c и api-callbacks.c.
+#include "api/api.h"
 
 typedef void (*api_callback_t)(const command_t *command);
 
