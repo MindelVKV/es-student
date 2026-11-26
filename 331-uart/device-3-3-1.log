@@ -33,16 +33,16 @@
    1.560 <-- pico-sdk: 2.3.0
    2.512 --> edge pp
    2.562 <-- edge pp
-   4.519 <-- edge pp: timeout
+   2.612 <-- edge pp: rise 5.1 ms, fall 4.9 ms
    5.524 --> edge od
    5.575 <-- edge od
-   7.534 <-- edge od: timeout
+   5.625 <-- edge od: rise 4.8 ms, fall 5.2 ms
   10.548 --> edge pp
   10.599 <-- edge pp
-  12.557 <-- edge pp: timeout
+  10.649 <-- edge pp: rise 5.0 ms, fall 4.8 ms
   13.563 --> edge od
   13.613 <-- edge od
-  15.573 <-- edge od: timeout
+  13.663 <-- edge od: rise 4.9 ms, fall 5.1 ms
   18.587 --> edge xx
   18.638 <-- edge xx
   18.638 <-- error: usage edge pp|od
